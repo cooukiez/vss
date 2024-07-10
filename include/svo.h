@@ -17,44 +17,54 @@
 
 #define DEFAULT_MAT 1
 
+#define UINT24_MAX 0xFFFFFF
+
 #define SET_BIT(num, bit) ((num) | (1 << (bit)))
 #define RESET_BIT(num, bit) ((num) & ~(1 << (bit)))
 #define CHECK_BIT(num, bit) (((num) & (1 << (bit))) != 0)
 
 struct SvoNode {
-    uint32_t children_index;
-    uint8_t child_mask;
-    uint8_t mat;
-
-    SvoNode() : children_index(0), child_mask(0), mat(0) {
+private:
+    uint32_t value = 0;
+public:
+    uint8_t child_mask() const {
+        return (value >> 24) & 0xFF;
     }
 
-    bool is_leaf() {
-        return child_mask == 0;
+    uint8_t data() const {
+        return value & 0x00FFFFFF;
     }
 
-    bool is_empty() {
-        return mat == 0 && child_mask == 0;
+    void set_data(const uint8_t data) {
+        value = (value & 0xFF000000) | (data & 0x00FFFFFF);
     }
 
-    bool is_filled() {
-        return mat > 0 || child_mask > 0;
-    };
+    bool is_leaf() const {
+        return child_mask() == 0;
+    }
 
-    bool is_parent() {
-        return child_mask > 0;
+    bool is_empty() const {
+        return value == 0;
+    }
+
+    bool is_filled() const {
+        return value > 0;
+    }
+
+    bool is_parent() const {
+        return child_mask() > 0;
     }
 
     void set_child(const uint8_t index) {
-        SET_BIT(child_mask, index);
+        value = SET_BIT(value, index + 24);
     }
 
     void reset_child(const uint8_t index) {
-        RESET_BIT(child_mask, index);
+        value = RESET_BIT(value, index + 24);
     }
 
-    bool exists_child(const uint8_t index) {
-        return CHECK_BIT(child_mask, index);
+    bool exists_child(const uint8_t index) const {
+        return CHECK_BIT(value, index + 24);
     }
 };
 
@@ -63,6 +73,7 @@ public:
     std::vector<SvoNode> nodes;
 
     Svo(const std::vector<uint8_t> &vox_grid, const uint32_t chunk_res) {
+        nodes.reserve(UINT24_MAX);
         nodes.push_back(SvoNode()); // add root
 
         for (size_t morton_index = 0; morton_index < vox_grid.size(); morton_index++) {
@@ -81,17 +92,16 @@ public:
                     // if leaf subdivide
                     if (current.is_leaf()) {
                         for (int i = 0; i < CHILD_COUNT; i++) {
-                            current_page.nodes.push_back(SvoNode());
+                            nodes.push_back(SvoNode());
                         }
                     }
 
                     current.set_child(child_idx);
-                    current = nodes[current.children_index + child_idx];
+                    current = nodes[current.data() + child_idx];
                     res /= 2;
                 }
 
-                current.mat = mat;
-                std::cout << std::endl;
+                current.set_data(mat);
             }
         }
     }
