@@ -83,7 +83,11 @@ int main() {
     }
     */
 
-    Svo(read_chunk_data[0], header.chunk_res);
+    std::vector<uint8_t> test_chunk(CHUNK_RES * CHUNK_RES * CHUNK_RES);
+    test_chunk[0] = 1;
+    test_chunk[1] = 1;
+
+    Svo(test_chunk, header.chunk_res);
 
     const uint32_t test = morton_encode_3d(5, 10, 15);
     uint8_t x, y, z;
