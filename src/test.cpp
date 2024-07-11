@@ -8,6 +8,7 @@
 #include <cmath>
 #include <random>
 
+#include "../include/bsvo.h"
 #include "../include/bvox.h"
 #include "../include/svo.h"
 #include "../include/vox.h"

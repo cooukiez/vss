@@ -73,12 +73,13 @@ static std::vector<uint8_t> run_length_decode(const std::vector<uint8_t> &data) 
 // writing
 //
 
-static int write_bvox(const std::string &filename, const std::vector<std::vector<uint8_t>> &chunk_data, const BvoxHeader header) {
+static int write_bvox(const std::string &filename, const std::vector<std::vector<uint8_t> > &chunk_data,
+                      const BvoxHeader header) {
     std::ofstream ofs(filename, std::ios::out | std::ios::binary);
     if (!ofs.is_open())
         throw std::runtime_error("failed to open file.");
 
-    ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
+    ofs.write(reinterpret_cast<const char *>(&header), sizeof(header));
 
     constexpr uint8_t seperator = CHUNK_SEPERATOR;
     for (const std::vector<uint8_t> &chunk: chunk_data) {
@@ -89,14 +90,14 @@ static int write_bvox(const std::string &filename, const std::vector<std::vector
             std::cout << "size before: " << chunk.size() << "\n";
 
             std::vector<uint8_t> encoded = run_length_encode(chunk);
-            ofs.write(reinterpret_cast<const char*>(encoded.data()), static_cast<std::streamsize>(encoded.size()));
+            ofs.write(reinterpret_cast<const char *>(encoded.data()), static_cast<std::streamsize>(encoded.size()));
 
             std::cout << "size after: " << encoded.size() << "\n";
         } else {
-            ofs.write(reinterpret_cast<const char*>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
+            ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
         }
 
-        ofs.write(reinterpret_cast<const char*>(&seperator), sizeof(seperator));
+        ofs.write(reinterpret_cast<const char *>(&seperator), sizeof(seperator));
     }
 
     ofs.close();
@@ -107,26 +108,27 @@ static int write_bvox(const std::string &filename, const std::vector<std::vector
 }
 
 static int get_bvox_header(const std::string &filename, BvoxHeader *p_header) {
-    std::ifstream file(filename, std::ios::binary);
-    if (!file.is_open())
+    std::ifstream ifs(filename, std::ios::binary);
+    if (!ifs.is_open())
         throw std::runtime_error("failed to open file.");
 
     BvoxHeader header{};
-    file.read(reinterpret_cast<char*>(&header), sizeof(header));
+    ifs.read(reinterpret_cast<char *>(&header), sizeof(header));
 
     if (header.version > BVOX_VERSION)
         throw std::runtime_error("newer bvox reader version required for file.");
     if (header.version < BVOX_VERSION)
         throw std::runtime_error("file version is outdated, use older reader.");
 
-    file.close();
+    ifs.close();
 
-    *p_header = header;
+    if (p_header)
+        *p_header = header;
 
     return EXIT_SUCCESS;
 }
 
-static int append_to_bvox(const std::string &filename, const std::vector<std::vector<uint8_t>> &chunk_data) {
+static int append_to_bvox(const std::string &filename, const std::vector<std::vector<uint8_t> > &chunk_data) {
     BvoxHeader header{};
     get_bvox_header(filename, &header);
 
@@ -139,8 +141,8 @@ static int append_to_bvox(const std::string &filename, const std::vector<std::ve
         if (chunk.size() != header.chunk_size)
             throw std::runtime_error("chunk is not the given size.");
 
-        ofs.write(reinterpret_cast<const char*>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
-        ofs.write(reinterpret_cast<const char*>(&seperator), sizeof(seperator));
+        ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
+        ofs.write(reinterpret_cast<const char *>(&seperator), sizeof(seperator));
     }
 
     ofs.close();
@@ -154,24 +156,24 @@ static int append_to_bvox(const std::string &filename, const std::vector<std::ve
 // reading
 //
 
-int read_bvox(const std::string &filename, std::vector<std::vector<uint8_t>> *p_chunk_data, BvoxHeader *p_header) {
-    std::ifstream file(filename, std::ios::binary);
-    if (!file.is_open())
+static int read_bvox(const std::string &filename, std::vector<std::vector<uint8_t> > *p_chunk_data, BvoxHeader *p_header) {
+    std::ifstream ifs(filename, std::ios::binary);
+    if (!ifs.is_open())
         throw std::runtime_error("failed to open file.");
 
     BvoxHeader header{};
-    file.read(reinterpret_cast<char*>(&header), sizeof(header));
+    ifs.read(reinterpret_cast<char *>(&header), sizeof(header));
 
     if (header.version > BVOX_VERSION)
         throw std::runtime_error("newer bvox reader version required for file.");
     if (header.version < BVOX_VERSION)
         throw std::runtime_error("file version is outdated, use older reader.");
 
-    while (file) {
+    while (ifs) {
         std::vector<uint8_t> chunk;
 
         uint8_t byte;
-        while (file.read(reinterpret_cast<char*>(&byte), sizeof(byte))) {
+        while (ifs.read(reinterpret_cast<char *>(&byte), sizeof(byte))) {
             if (byte == CHUNK_SEPERATOR) {
                 break;
             }
@@ -186,9 +188,10 @@ int read_bvox(const std::string &filename, std::vector<std::vector<uint8_t>> *p_
         }
     }
 
-    file.close();
+    ifs.close();
 
-    *p_header = header;
+    if (p_header)
+        *p_header = header;
 
     return EXIT_SUCCESS;
 }
