@@ -61,6 +61,9 @@ public:
     std::vector<SvoNode> nodes;
     uint32_t root_res = 0;
 
+    Svo() {
+    }
+
     Svo(const std::vector<uint8_t> &vox_grid, const uint32_t grid_res) {
         nodes.reserve(vox_grid.size());
         nodes.push_back(SvoNode()); // add root

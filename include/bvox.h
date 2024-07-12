@@ -180,6 +180,7 @@ static int read_bvox(const std::string &filename, std::vector<std::vector<uint8_
             chunk.push_back(byte);
         }
 
+        // TODO: fix run length encoding / decoding
         if (header.run_length_encoded) {
             std::vector<uint8_t> decoded = run_length_decode(chunk);
             p_chunk_data->push_back(decoded);

@@ -14,92 +14,104 @@
 #include "../include/vox.h"
 
 #define CHUNK_RES 256
+#define CHUNK_SIZE (CHUNK_RES * CHUNK_RES * CHUNK_RES)
 
-std::vector<std::vector<uint8_t> > gen_rand_vox(const float probability_of_one) {
-    constexpr size_t chunk_size = CHUNK_RES * CHUNK_RES * CHUNK_RES;
-    std::vector<uint8_t> test_chunk(chunk_size);
+std::vector<uint8_t> gen_rand_vox_grid(const size_t size, const float probability_of_one) {
+    std::vector<uint8_t> grid(size);
 
     std::random_device rd;
     std::mt19937 gen(rd());
 
     std::bernoulli_distribution dist(probability_of_one);
 
-    for (size_t i = 0; i < chunk_size; i++) {
-        test_chunk[i] = dist(gen);
+    for (size_t i = 0; i < size; i++) {
+        grid[i] = dist(gen);
     }
 
-    const std::vector<std::vector<uint8_t> > chunk_data = {test_chunk};
-
-    return chunk_data;
+    return grid;
 }
 
-std::vector<std::vector<uint8_t> > test_read_bvox(const std::string &filename) {
-    std::vector<std::vector<uint8_t> > chunk_data;
-    BvoxHeader header{};
+int test_bvox_read_write() {
+    const std::vector<uint8_t> chunk = gen_rand_vox_grid(CHUNK_SIZE, 0.1f);
+    std::vector<uint8_t> morton_chunk(CHUNK_SIZE);
+    morton_encode_3d_grid(chunk.data(), CHUNK_RES, CHUNK_SIZE, morton_chunk.data());
 
-    read_bvox(filename, &chunk_data, &header);
-    std::cout << header.chunk_res << std::endl;
-    std::cout << header.chunk_size << std::endl;
-    for (const std::vector<uint8_t> &chunk: chunk_data)
-        std::cout << chunk.size() << std::endl;
-
-    return chunk_data;
-}
-
-int main() {
-    std::vector<std::vector<uint8_t> > chunk_data = gen_rand_vox(0.7f);
-    // morton encode chunk_data
-    std::vector<std::vector<uint8_t> > encoded_chunk_data;
-    for (const std::vector<uint8_t> &chunk: chunk_data) {
-        std::vector<uint8_t> encoded_chunk;
-        for (size_t i = 0; i < chunk.size(); i++) {
-            const uint8_t x = static_cast<uint8_t>(i % CHUNK_RES);
-            const uint8_t y = static_cast<uint8_t>((i / CHUNK_RES) % CHUNK_RES);
-            const uint8_t z = static_cast<uint8_t>(i / (CHUNK_RES * CHUNK_RES));
-            const uint32_t morton = morton_encode_3d(x, y, z);
-            encoded_chunk.push_back(morton);
-        }
-        encoded_chunk_data.push_back(encoded_chunk);
-    }
+    const std::vector<std::vector<uint8_t>> chunk_data = {morton_chunk};
 
     BvoxHeader header{};
     header.version = BVOX_VERSION;
     header.chunk_res = CHUNK_RES;
-    header.chunk_size = CHUNK_RES * CHUNK_RES * CHUNK_RES;
-    header.morton_encoded = false;
-    header.run_length_encoded = false;
+    header.chunk_size = CHUNK_SIZE;
+    header.run_length_encoded = true;
+    header.morton_encoded = true;
 
     write_bvox("test.bvox", chunk_data, header);
-    append_to_bvox("test.bvox", chunk_data);
-    std::vector<std::vector<uint8_t> > read_chunk_data = test_read_bvox("test.bvox");
 
-    /*
-    for (size_t i = 0; i < chunk_data.size(); i++) {
-        for (size_t j = 0; j < chunk_data[i].size(); j++) {
-            if (chunk_data[i][j] != read_chunk_data[i][j]) {
-                std::cout << "data mismatch at index " << j << std::endl;
-                return EXIT_FAILURE;
-            }
+    // read file again
+    std::vector<std::vector<uint8_t>> read_chunk_data;
+    BvoxHeader read_header;
+    read_bvox("test.bvox", &read_chunk_data, &read_header);
+    std::vector<uint8_t> decoded_morton(CHUNK_SIZE);
+    morton_decode_3d_grid(read_chunk_data[0].data(), CHUNK_RES, CHUNK_SIZE, decoded_morton.data());
+
+    for (size_t i = 0; i < CHUNK_SIZE; i++) {
+        if (chunk[i] != decoded_morton[i]) {
+            std::cerr << "data does not match." << std::endl;
+            return EXIT_FAILURE;
         }
     }
-    */
 
-    std::vector<uint8_t> test_chunk(CHUNK_RES * CHUNK_RES * CHUNK_RES);
-    test_chunk[0] = 1;
-    test_chunk[1] = 1;
+    return EXIT_SUCCESS;
+}
 
-    Svo(test_chunk, header.chunk_res);
+int test_bsvo_read_write() {
+    const std::vector<uint8_t> chunk = gen_rand_vox_grid(CHUNK_SIZE, 0.3f);
+    std::vector<uint8_t> morton_chunk(CHUNK_SIZE);
+    morton_encode_3d_grid(chunk.data(), CHUNK_RES, CHUNK_SIZE, morton_chunk.data());
 
-    const uint32_t test = morton_encode_3d(5, 10, 15);
-    uint8_t x, y, z;
-    morton_decode_3d(test, x, y, z);
-    std::cout << static_cast<int>(x) << " " << static_cast<int>(y) << " " << static_cast<int>(z) << std::endl;
+    const std::vector<std::vector<uint8_t>> chunk_data = {morton_chunk};
 
-    std::vector<uint8_t> test_data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    std::vector<uint8_t> encoded = run_length_encode(test_data);
-    std::vector<uint8_t> decoded = run_length_decode(encoded);
-    for (const auto &i: decoded)
-        std::cout << static_cast<int>(i) << " ";
+    BvoxHeader header{};
+    header.version = BVOX_VERSION;
+    header.chunk_res = CHUNK_RES;
+    header.chunk_size = CHUNK_SIZE;
+    header.run_length_encoded = true;
+    header.morton_encoded = false;
+
+    write_bvox("svo_test_grid.bvox", chunk_data, header);
+    std::vector<std::vector<uint8_t>> read_chunk_data;
+    BvoxHeader read_header;
+    read_bvox("test.bvox", &read_chunk_data, &read_header);
+
+    Svo svo = Svo(read_chunk_data[0], CHUNK_RES);
+
+    std::cout << "svo size: " << svo.nodes.size() << std::endl;
+
+    BsvoHeader bsvo_header{};
+    bsvo_header.version = BSVO_VERSION;
+    bsvo_header.root_res = svo.root_res;
+    bsvo_header.run_length_encoded = true;
+
+    write_bsvo("test.bsvo", svo, bsvo_header);
+
+    // read file again
+    Svo read_svo;
+    BsvoHeader read_bsvo_header;
+    read_bvox("test.bsvo", &read_svo, &read_bsvo_header);
+
+    for (size_t i = 0; i < read_svo.nodes.size(); i++) {
+        if (svo.nodes[i].data != read_svo.nodes[i].data || svo.nodes[i].child_mask != read_svo.nodes[i].child_mask) {
+            std::cerr << "data does not match." << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int main() {
+    test_bvox_read_write();
+    test_bsvo_read_write();
 
     return EXIT_SUCCESS;
 }
