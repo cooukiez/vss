@@ -11,6 +11,7 @@
 
 #define BVOX_VERSION 1
 #define CHUNK_SEPERATOR UINT8_MAX
+#define RLE_MAX (UINT8_MAX - 1)
 
 struct BvoxHeader {
     uint8_t version;
@@ -32,7 +33,7 @@ static std::vector<uint8_t> run_length_encode(const std::vector<uint8_t> &data) 
 
     for (size_t i = 1; i < data.size(); i++) {
         if (data[i] == current) {
-            if (count == 255) {
+            if (count == RLE_MAX) {
                 encoded.push_back(current);
                 encoded.push_back(count);
                 count = 0;
@@ -180,7 +181,6 @@ static int read_bvox(const std::string &filename, std::vector<std::vector<uint8_
             chunk.push_back(byte);
         }
 
-        // TODO: fix run length encoding / decoding
         if (header.run_length_encoded) {
             std::vector<uint8_t> decoded = run_length_decode(chunk);
             p_chunk_data->push_back(decoded);
