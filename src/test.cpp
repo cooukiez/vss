@@ -8,10 +8,7 @@
 #include <cmath>
 #include <random>
 
-#include "../include/bsvo.h"
-#include "../include/bvox.h"
-#include "../include/svo.h"
-#include "../include/vox.h"
+#include "../include/vss.h"
 
 #define CHUNK_RES 256
 #define CHUNK_SIZE (CHUNK_RES * CHUNK_RES * CHUNK_RES)
