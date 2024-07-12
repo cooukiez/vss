@@ -94,7 +94,7 @@ int test_bsvo_read_write() {
     // read file again
     Svo read_svo;
     BsvoHeader read_bsvo_header;
-    read_bvox("test.bsvo", &read_svo, &read_bsvo_header);
+    read_bsvo("test.bsvo", &read_svo, &read_bsvo_header);
 
     for (size_t i = 0; i < read_svo.nodes.size(); i++) {
         if (svo.nodes[i].data != read_svo.nodes[i].data || svo.nodes[i].child_mask != read_svo.nodes[i].child_mask) {

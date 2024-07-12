@@ -34,7 +34,7 @@ static int write_bsvo(const std::string &filename, const Svo svo, const BsvoHead
     return EXIT_SUCCESS;
 }
 
-static int read_bvox(const std::string &filename, Svo *p_svo, BsvoHeader *p_header) {
+static int read_bsvo(const std::string &filename, Svo *p_svo, BsvoHeader *p_header) {
     std::ifstream ifs(filename, std::ios::binary);
     if (!ifs.is_open())
         throw std::runtime_error("failed to open file.");
@@ -43,7 +43,7 @@ static int read_bvox(const std::string &filename, Svo *p_svo, BsvoHeader *p_head
     ifs.read(reinterpret_cast<char*>(&header), sizeof(header));
 
     if (header.version > BSVO_VERSION)
-        throw std::runtime_error("newer bvox reader version required for file.");
+        throw std::runtime_error("newer bsvo reader version required for file.");
     if (header.version < BSVO_VERSION)
         throw std::runtime_error("file version is outdated, use older reader.");
 
