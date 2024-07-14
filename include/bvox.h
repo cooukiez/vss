@@ -116,10 +116,15 @@ static int get_bvox_header(const std::string &filename, BvoxHeader *p_header) {
     BvoxHeader header{};
     ifs.read(reinterpret_cast<char *>(&header), sizeof(header));
 
-    if (header.version > BVOX_VERSION)
+    if (header.version > BVOX_VERSION) {
+        std::cout << "file version: " << header.version << ", reader version: " << BVOX_VERSION << std::endl;
         throw std::runtime_error("newer bvox reader version required for file.");
-    if (header.version < BVOX_VERSION)
-        throw std::runtime_error("file version is outdated, use older reader.");
+    }
+
+    if (header.version < BVOX_VERSION) {
+        std::cout << "file version: " << header.version << ", reader version: " << BVOX_VERSION << std::endl;
+        throw std::runtime_error("file version is outdated, use older bvox reader.");
+    }
 
     ifs.close();
 

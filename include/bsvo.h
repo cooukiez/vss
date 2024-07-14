@@ -43,10 +43,14 @@ static int read_bsvo(const std::string &filename, Svo *p_svo, BsvoHeader *p_head
     BsvoHeader header{};
     ifs.read(reinterpret_cast<char*>(&header), sizeof(header));
 
-    if (header.version > BSVO_VERSION)
+    if (header.version > BSVO_VERSION) {
+        std::cout << "file version: " << header.version << ", reader version: " << BSVO_VERSION << std::endl;
         throw std::runtime_error("newer bsvo reader version required for file.");
-    if (header.version < BSVO_VERSION)
-        throw std::runtime_error("file version is outdated, use older reader.");
+    }
+    if (header.version < BSVO_VERSION) {
+        std::cout << "file version: " << header.version << ", reader version: " << BSVO_VERSION << std::endl;
+        throw std::runtime_error("file version is outdated, use older bsvo reader.");
+    }
 
     // read rest of file into nodes array of svo
     std::vector<SvoNode> nodes;
