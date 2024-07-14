@@ -5,6 +5,8 @@
 #ifndef VSS_H
 #define VSS_H
 
+// include all headers
+
 #include "bsvo.h"
 #include "bvox.h"
 #include "svo.h"
