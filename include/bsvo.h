@@ -62,6 +62,7 @@ static int read_bsvo(const std::string &filename, Svo *p_svo, BsvoHeader *p_head
 
     if (p_svo) {
         p_svo->nodes = std::move(nodes);
+        p_svo->max_depth = header.max_depth;
         p_svo->root_res = header.root_res;
     }
 
