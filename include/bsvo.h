@@ -11,15 +11,16 @@
 
 #include "svo.h"
 
-#define BSVO_VERSION 1
+#define BSVO_VERSION 2
 
 struct BsvoHeader {
     uint8_t version;
+    uint8_t max_depth;
     uint32_t root_res;
     bool run_length_encoded;
 };
 
-static int write_bsvo(const std::string &filename, const Svo svo, const BsvoHeader header) {
+static int write_bsvo(const std::string &filename, const Svo &svo, const BsvoHeader header) {
     std::ofstream ofs(filename, std::ios::out | std::ios::binary);
     if (!ofs.is_open())
         throw std::runtime_error("failed to open file.");

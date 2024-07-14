@@ -12,11 +12,10 @@
 
 #include "glm/glm.hpp"
 
-#define SVO_VERSION 1
+#define SVO_VERSION 2
 
-#define MAX_DEPTH 8
+#define DEFAULT_MAX_DEPTH 8
 #define CHILD_COUNT 8
-
 #define DEFAULT_MAT 1
 
 #define SET_BIT(num, bit) ((num) | (1 << (bit)))
@@ -60,11 +59,13 @@ class Svo {
 public:
     std::vector<SvoNode> nodes;
     uint32_t root_res = 0;
+    uint8_t max_depth = DEFAULT_MAX_DEPTH;
 
     Svo() {
     }
 
-    Svo(const std::vector<uint8_t> &vox_grid, const uint32_t grid_res) {
+    Svo(const std::vector<uint8_t> &vox_grid, const uint32_t grid_res, const uint8_t loc_max_depth = DEFAULT_MAX_DEPTH) {
+        max_depth = loc_max_depth;
         nodes.reserve(vox_grid.size());
         nodes.push_back(SvoNode()); // add root
 
@@ -75,20 +76,20 @@ public:
             const uint8_t mat = vox_grid[i];
 
             if (mat > 0)
-                insert_node(static_cast<uint32_t>(i), mat);
+                insert_node(static_cast<uint32_t>(i), max_depth, mat);
         }
 
         std::cout << "octree size: " << nodes.size() << std::endl;
     }
 
-    int insert_node(const uint32_t morton_index, const uint8_t mat) {
+    int insert_node(const uint32_t morton_index, const uint8_t max_depth, const uint8_t mat) {
         uint32_t local_index = morton_index;
         uint32_t res = root_res;
 
         // current node where we find ourselves
         uint32_t current = 0; // start at root
 
-        for (uint8_t depth = 0; depth < MAX_DEPTH; depth++) {
+        for (uint8_t depth = 0; depth < max_depth; depth++) {
             // current_size / child_count = child_size
             const uint32_t child_size = (res * res * res) / CHILD_COUNT;
             // determine in which child the morton index is

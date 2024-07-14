@@ -86,6 +86,7 @@ int test_bsvo_read_write() {
 
     BsvoHeader bsvo_header{};
     bsvo_header.version = BSVO_VERSION;
+    bsvo_header.max_depth = svo.max_depth;
     bsvo_header.root_res = svo.root_res;
     bsvo_header.run_length_encoded = true;
 
@@ -138,13 +139,64 @@ int sample_bvox_and_bsvo() {
 
     BsvoHeader bsvo_header{};
     bsvo_header.version = BSVO_VERSION;
+    bsvo_header.max_depth = svo.max_depth;
     bsvo_header.root_res = svo.root_res;
     bsvo_header.run_length_encoded = true;
 
     write_bsvo("sample_data.bsvo", svo, bsvo_header);
 
+    // test reading
     std::vector<std::vector<uint8_t>> read_chunk_data;
     read_bvox("sample_data.bvox", &read_chunk_data, &header);
+
+    return EXIT_SUCCESS;
+}
+
+int simple_test_data() {
+    constexpr uint32_t chunk_res = 8;
+    constexpr uint32_t chunk_size = chunk_res * chunk_res * chunk_res;
+    constexpr uint32_t max_depth = 3;
+
+    std::vector<uint8_t> chunk(chunk_size);
+
+    constexpr uint8_t min = 2;
+    constexpr uint8_t max = 4;
+
+    for (int x = min; x < max; x++) {
+        for (int y = min; y < max; y++) {
+            for (int z = min; z < max; z++) {
+                chunk[POS_TO_INDEX(x, y, z, chunk_res)] = DEFAULT_MAT;
+            }
+        }
+    }
+
+    std::vector<uint8_t> morton_chunk(chunk_size);
+    morton_encode_3d_grid(chunk.data(), chunk_res, chunk_size, morton_chunk.data());
+
+    const std::vector<std::vector<uint8_t>> chunk_data = {morton_chunk};
+
+    BvoxHeader header{};
+    header.version = BVOX_VERSION;
+    header.chunk_res = chunk_res;
+    header.chunk_size = chunk_size;
+    header.run_length_encoded = true;
+    header.morton_encoded = false;
+
+    write_bvox("simple_test_data.bvox", chunk_data, header);
+
+    const Svo svo = Svo(morton_chunk, chunk_res, max_depth);
+
+    BsvoHeader bsvo_header{};
+    bsvo_header.version = BSVO_VERSION;
+    bsvo_header.max_depth = svo.max_depth;
+    bsvo_header.root_res = svo.root_res;
+    bsvo_header.run_length_encoded = true;
+
+    write_bsvo("simple_test_data.bsvo", svo, bsvo_header);
+
+    // test reading
+    std::vector<std::vector<uint8_t>> read_chunk_data;
+    read_bvox("simple_test_data.bvox", &read_chunk_data, &header);
 
     return EXIT_SUCCESS;
 }
@@ -153,6 +205,7 @@ int main() {
     test_bvox_read_write();
     test_bsvo_read_write();
     sample_bvox_and_bsvo();
+    simple_test_data();
 
     return EXIT_SUCCESS;
 }
