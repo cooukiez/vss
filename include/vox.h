@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
 
 #define POS_TO_INDEX(x, y, z, res) (x + y * res + z * res * res)
 #define INDEX_TO_POS(index, res) (glm::uvec3(index % res, (index / res) % res, index / (res * res)))
