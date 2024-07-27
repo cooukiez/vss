@@ -164,7 +164,17 @@ static int append_to_bvox(const std::string &filename, const std::vector<std::ve
         if (chunk.size() != header.chunk_size)
             throw std::runtime_error("chunk is not the given size.");
 
-        ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
+        if (header.run_length_encoded) {
+            std::cout << "size before: " << chunk.size() << "\n";
+
+            std::vector<uint8_t> encoded = run_length_encode(chunk);
+            ofs.write(reinterpret_cast<const char *>(encoded.data()), static_cast<std::streamsize>(encoded.size()));
+
+            std::cout << "size after: " << encoded.size() << "\n";
+        } else {
+            ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
+        }
+
         ofs.write(reinterpret_cast<const char *>(&separator), sizeof(separator));
     }
 
@@ -187,10 +197,15 @@ static int read_bvox(const std::string &filename, std::vector<std::vector<uint8_
     BvoxHeader header{};
     ifs.read(reinterpret_cast<char *>(&header), sizeof(header));
 
-    if (header.version > BVOX_VERSION)
+    if (header.version > BVOX_VERSION) {
+        std::cout << "file version: " << header.version << ", reader version: " << BVOX_VERSION << std::endl;
         throw std::runtime_error("newer bvox reader version required for file.");
-    if (header.version < BVOX_VERSION)
-        throw std::runtime_error("file version is outdated, use older reader.");
+    }
+
+    if (header.version < BVOX_VERSION) {
+        std::cout << "file version: " << header.version << ", reader version: " << BVOX_VERSION << std::endl;
+        throw std::runtime_error("file version is outdated, use older bvox reader.");
+    }
 
     while (ifs) {
         std::vector<uint8_t> chunk;
