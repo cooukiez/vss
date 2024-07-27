@@ -20,6 +20,22 @@ struct BsvoHeader {
     bool run_length_encoded;
 };
 
+static int write_empty_bsvo(const std::string &filename, BsvoHeader header) {
+    header.version = BSVO_VERSION;
+
+    std::ofstream ofs(filename, std::ios::out | std::ios::binary);
+    if (!ofs.is_open())
+        throw std::runtime_error("failed to open file.");
+
+    ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+    ofs.close();
+    if (ofs.fail())
+        throw std::runtime_error("failed to write to file.");
+
+    return EXIT_SUCCESS;
+}
+
 static int write_bsvo(const std::string &filename, const Svo &svo, BsvoHeader header) {
     header.version = BSVO_VERSION;
 

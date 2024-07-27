@@ -73,6 +73,21 @@ static std::vector<uint8_t> run_length_decode(const std::vector<uint8_t> &data) 
 //
 // writing
 //
+static int write_empty_bvox(const std::string &filename, BvoxHeader header) {
+    header.version = BVOX_VERSION;
+
+    std::ofstream ofs(filename, std::ios::out | std::ios::binary);
+    if (!ofs.is_open())
+        throw std::runtime_error("failed to open file.");
+
+    ofs.write(reinterpret_cast<const char *>(&header), sizeof(header));
+
+    ofs.close();
+    if (ofs.fail())
+        throw std::runtime_error("failed to write to file.");
+
+    return EXIT_SUCCESS;
+}
 
 static int write_bvox(const std::string &filename, const std::vector<std::vector<uint8_t> > &chunk_data,
                       BvoxHeader header) {
