@@ -10,7 +10,7 @@
 #include <fstream>
 
 #define BVOX_VERSION 1
-#define CHUNK_SEPERATOR UINT8_MAX
+#define CHUNK_SEPARATOR UINT8_MAX
 #define RLE_MAX (UINT8_MAX - 1)
 
 struct BvoxHeader {
@@ -82,7 +82,7 @@ static int write_bvox(const std::string &filename, const std::vector<std::vector
 
     ofs.write(reinterpret_cast<const char *>(&header), sizeof(header));
 
-    constexpr uint8_t seperator = CHUNK_SEPERATOR;
+    constexpr uint8_t separator = CHUNK_SEPARATOR;
     for (const std::vector<uint8_t> &chunk: chunk_data) {
         if (chunk.size() != header.chunk_size)
             throw std::runtime_error("chunk is not the given size.");
@@ -98,7 +98,7 @@ static int write_bvox(const std::string &filename, const std::vector<std::vector
             ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
         }
 
-        ofs.write(reinterpret_cast<const char *>(&seperator), sizeof(seperator));
+        ofs.write(reinterpret_cast<const char *>(&separator), sizeof(separator));
     }
 
     ofs.close();
@@ -142,13 +142,13 @@ static int append_to_bvox(const std::string &filename, const std::vector<std::ve
     if (!ofs.is_open())
         throw std::runtime_error("failed to open file.");
 
-    constexpr uint8_t seperator = CHUNK_SEPERATOR;
+    constexpr uint8_t separator = CHUNK_SEPARATOR;
     for (const std::vector<uint8_t> &chunk: chunk_data) {
         if (chunk.size() != header.chunk_size)
             throw std::runtime_error("chunk is not the given size.");
 
         ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
-        ofs.write(reinterpret_cast<const char *>(&seperator), sizeof(seperator));
+        ofs.write(reinterpret_cast<const char *>(&separator), sizeof(separator));
     }
 
     ofs.close();
@@ -180,7 +180,7 @@ static int read_bvox(const std::string &filename, std::vector<std::vector<uint8_
 
         uint8_t byte;
         while (ifs.read(reinterpret_cast<char *>(&byte), sizeof(byte))) {
-            if (byte == CHUNK_SEPERATOR) {
+            if (byte == CHUNK_SEPARATOR) {
                 break;
             }
             chunk.push_back(byte);
