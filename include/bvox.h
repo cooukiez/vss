@@ -151,7 +151,7 @@ static int get_bvox_header(const std::string &filename, BvoxHeader *p_header) {
     return EXIT_SUCCESS;
 }
 
-static int append_to_bvox(const std::string &filename, const std::vector<std::vector<uint8_t> > &chunk_data) {
+static int append_to_bvox(const std::string &filename, const std::vector<uint8_t> &chunk) {
     BvoxHeader header{};
     get_bvox_header(filename, &header);
 
@@ -160,23 +160,21 @@ static int append_to_bvox(const std::string &filename, const std::vector<std::ve
         throw std::runtime_error("failed to open file.");
 
     constexpr uint8_t separator = CHUNK_SEPARATOR;
-    for (const std::vector<uint8_t> &chunk: chunk_data) {
-        if (chunk.size() != header.chunk_size)
-            throw std::runtime_error("chunk is not the given size.");
+    if (chunk.size() != header.chunk_size)
+        throw std::runtime_error("chunk is not the given size.");
 
-        if (header.run_length_encoded) {
-            std::cout << "size before: " << chunk.size() << "\n";
+    if (header.run_length_encoded) {
+        std::cout << "size before: " << chunk.size() << "\n";
 
-            std::vector<uint8_t> encoded = run_length_encode(chunk);
-            ofs.write(reinterpret_cast<const char *>(encoded.data()), static_cast<std::streamsize>(encoded.size()));
+        std::vector<uint8_t> encoded = run_length_encode(chunk);
+        ofs.write(reinterpret_cast<const char *>(encoded.data()), static_cast<std::streamsize>(encoded.size()));
 
-            std::cout << "size after: " << encoded.size() << "\n";
-        } else {
-            ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
-        }
-
-        ofs.write(reinterpret_cast<const char *>(&separator), sizeof(separator));
+        std::cout << "size after: " << encoded.size() << "\n";
+    } else {
+        ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
     }
+
+    ofs.write(reinterpret_cast<const char *>(&separator), sizeof(separator));
 
     ofs.close();
     if (ofs.fail())
