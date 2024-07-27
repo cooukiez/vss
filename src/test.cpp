@@ -36,7 +36,6 @@ int test_bvox_read_write() {
     const std::vector<std::vector<uint8_t>> chunk_data = {morton_chunk};
 
     BvoxHeader header{};
-    header.version = BVOX_VERSION;
     header.chunk_res = CHUNK_RES;
     header.chunk_size = CHUNK_SIZE;
     header.run_length_encoded = true;
@@ -69,7 +68,6 @@ int test_bsvo_read_write() {
     const std::vector<std::vector<uint8_t>> chunk_data = {morton_chunk};
 
     BvoxHeader header{};
-    header.version = BVOX_VERSION;
     header.chunk_res = CHUNK_RES;
     header.chunk_size = CHUNK_SIZE;
     header.run_length_encoded = true;
@@ -85,7 +83,6 @@ int test_bsvo_read_write() {
     std::cout << "svo size: " << svo.nodes.size() << std::endl;
 
     BsvoHeader bsvo_header{};
-    bsvo_header.version = BSVO_VERSION;
     bsvo_header.max_depth = svo.max_depth;
     bsvo_header.root_res = svo.root_res;
     bsvo_header.run_length_encoded = true;
@@ -127,7 +124,6 @@ int sample_bvox_and_bsvo() {
     const std::vector<std::vector<uint8_t>> chunk_data = {morton_chunk};
 
     BvoxHeader header{};
-    header.version = BVOX_VERSION;
     header.chunk_res = CHUNK_RES;
     header.chunk_size = CHUNK_SIZE;
     header.run_length_encoded = true;
@@ -138,7 +134,6 @@ int sample_bvox_and_bsvo() {
     const Svo svo = Svo(morton_chunk, CHUNK_RES);
 
     BsvoHeader bsvo_header{};
-    bsvo_header.version = BSVO_VERSION;
     bsvo_header.max_depth = svo.max_depth;
     bsvo_header.root_res = svo.root_res;
     bsvo_header.run_length_encoded = true;
@@ -176,7 +171,6 @@ int simple_test_data() {
     const std::vector<std::vector<uint8_t>> chunk_data = {morton_chunk};
 
     BvoxHeader header{};
-    header.version = BVOX_VERSION;
     header.chunk_res = chunk_res;
     header.chunk_size = chunk_size;
     header.run_length_encoded = true;
@@ -187,7 +181,6 @@ int simple_test_data() {
     const Svo svo = Svo(morton_chunk, chunk_res, max_depth);
 
     BsvoHeader bsvo_header{};
-    bsvo_header.version = BSVO_VERSION;
     bsvo_header.max_depth = svo.max_depth;
     bsvo_header.root_res = svo.root_res;
     bsvo_header.run_length_encoded = true;

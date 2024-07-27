@@ -75,7 +75,9 @@ static std::vector<uint8_t> run_length_decode(const std::vector<uint8_t> &data) 
 //
 
 static int write_bvox(const std::string &filename, const std::vector<std::vector<uint8_t> > &chunk_data,
-                      const BvoxHeader header) {
+                      BvoxHeader header) {
+    header.version = BVOX_VERSION;
+
     std::ofstream ofs(filename, std::ios::out | std::ios::binary);
     if (!ofs.is_open())
         throw std::runtime_error("failed to open file.");
