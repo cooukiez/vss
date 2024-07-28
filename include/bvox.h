@@ -9,17 +9,17 @@
 #include <cstdint>
 #include <fstream>
 
-#define BVOX_VERSION 1
+#define BVOX_VERSION 2
 #define CHUNK_SEPARATOR UINT8_MAX
 #define RLE_MAX (UINT8_MAX - 1)
 
 struct BvoxHeader {
-    uint8_t version;
-    uint32_t chunk_res;
-    uint32_t chunk_size;
-    bool run_length_encoded;
+    alignas(1) uint8_t version;
+    alignas(4) uint32_t chunk_res;
+    alignas(4) uint32_t chunk_size;
+    alignas(1) bool run_length_encoded;
 
-    bool morton_encoded;
+    alignas(1) bool morton_encoded;
 };
 
 //
