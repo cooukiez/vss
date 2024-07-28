@@ -11,13 +11,13 @@
 
 #include "svo.h"
 
-#define BSVO_VERSION 2
+#define BSVO_VERSION 3
 
 struct BsvoHeader {
-    uint8_t version;
-    uint8_t max_depth;
-    uint32_t root_res;
-    bool run_length_encoded;
+    alignas(4) uint8_t version;
+    alignas(4) uint8_t max_depth;
+    alignas(4) uint32_t root_res;
+    alignas(1) bool run_length_encoded;
 };
 
 static int write_empty_bsvo(const std::string &filename, BsvoHeader header) {

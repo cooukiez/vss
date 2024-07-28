@@ -23,8 +23,8 @@
 #define CHECK_BIT(num, bit) (((num) & (1 << (bit))) != 0)
 
 struct SvoNode {
-    uint32_t data = 0;
-    uint8_t child_mask = 0;
+    alignas(4) uint32_t data = 0;
+    alignas(1) uint8_t child_mask = 0;
 
     bool is_leaf() const {
         return child_mask == 0;
