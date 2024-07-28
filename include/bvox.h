@@ -14,7 +14,7 @@
 #define RLE_MAX (UINT8_MAX - 1)
 
 struct BvoxHeader {
-    alignas(1) uint8_t version;
+    alignas(4) uint8_t version;
     alignas(4) uint32_t chunk_res;
     alignas(4) uint32_t chunk_size;
     alignas(1) bool run_length_encoded;
