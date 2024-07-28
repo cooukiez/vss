@@ -45,7 +45,7 @@ int test_bvox_read_write() {
 
     // read file again
     std::vector<std::vector<uint8_t>> read_chunk_data;
-    BvoxHeader read_header;
+    BvoxHeader read_header{};
     read_bvox("test.bvox", &read_chunk_data, &read_header);
     std::vector<uint8_t> decoded_morton(CHUNK_SIZE);
     morton_decode_3d_grid(read_chunk_data[0].data(), CHUNK_RES, CHUNK_SIZE, decoded_morton.data());
@@ -75,12 +75,10 @@ int test_bsvo_read_write() {
 
     write_bvox("svo_test_grid.bvox", chunk_data, header);
     std::vector<std::vector<uint8_t>> read_chunk_data;
-    BvoxHeader read_header;
+    BvoxHeader read_header{};
     read_bvox("test.bvox", &read_chunk_data, &read_header);
 
     const Svo svo = Svo(read_chunk_data[0], CHUNK_RES);
-
-    std::cout << "svo size: " << svo.nodes.size() << std::endl;
 
     BsvoHeader bsvo_header{};
     bsvo_header.max_depth = svo.max_depth;
@@ -91,7 +89,7 @@ int test_bsvo_read_write() {
 
     // read file again
     Svo read_svo;
-    BsvoHeader read_bsvo_header;
+    BsvoHeader read_bsvo_header{};
     read_bsvo("test.bsvo", &read_svo, &read_bsvo_header);
 
     for (size_t i = 0; i < read_svo.nodes.size(); i++) {
@@ -100,6 +98,8 @@ int test_bsvo_read_write() {
             return EXIT_FAILURE;
         }
     }
+
+    std::cout << std::endl;
 
     return EXIT_SUCCESS;
 }
@@ -143,6 +143,8 @@ int sample_bvox_and_bsvo() {
     // test reading
     std::vector<std::vector<uint8_t>> read_chunk_data;
     read_bvox("sample_data.bvox", &read_chunk_data, &header);
+
+    std::cout << std::endl;
 
     return EXIT_SUCCESS;
 }
@@ -191,10 +193,31 @@ int simple_test_data() {
     std::vector<std::vector<uint8_t>> read_chunk_data;
     read_bvox("simple_test_data.bvox", &read_chunk_data, &header);
 
+    std::cout << std::endl;
+
     return EXIT_SUCCESS;
 }
 
+void print_header_info() {
+    std::cout << "bvox header size: " << sizeof(BvoxHeader) << std::endl;
+    std::cout << "offset of bvox header version: " << offsetof(BvoxHeader, version) << std::endl;
+    std::cout << "offset of bvox header chunk_res: " << offsetof(BvoxHeader, chunk_res) << std::endl;
+    std::cout << "offset of bvox header chunk_size: " << offsetof(BvoxHeader, chunk_size) << std::endl;
+    std::cout << "offset of bvox header run_length_encoded: " << offsetof(BvoxHeader, run_length_encoded) << std::endl;
+    std::cout << "offset of bvox header morton_encoded: " << offsetof(BvoxHeader, morton_encoded) << std::endl;
+
+    std::cout << "bsvo header size: " << sizeof(BsvoHeader) << std::endl;
+    std::cout << "offset of bsvo header version: " << offsetof(BsvoHeader, version) << std::endl;
+    std::cout << "offset of bsvo header max_depth: " << offsetof(BsvoHeader, max_depth) << std::endl;
+    std::cout << "offset of bsvo header root_res: " << offsetof(BsvoHeader, root_res) << std::endl;
+    std::cout << "offset of bsvo header run_length_encoded: " << offsetof(BsvoHeader, run_length_encoded) << std::endl;
+
+    std::cout << std::endl << std::endl;
+}
+
 int main() {
+    print_header_info();
+
     test_bvox_read_write();
     test_bsvo_read_write();
     sample_bvox_and_bsvo();

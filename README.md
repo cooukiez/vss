@@ -6,6 +6,7 @@ u32 chunk_res @ 0x04;
 u32 chunk_size @ 0x08;
 bool run_length_encoded @ 0x0C;
 bool morton_encoded @ 0x0D;
+u8 data[0x1000000] @ 0x10;
 ```
 ### Palette
 Coming soon.

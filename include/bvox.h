@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <fstream>
 
+#include "vss_prop.h"
+
 #define BVOX_VERSION 2
 #define CHUNK_SEPARATOR UINT8_MAX
 #define RLE_MAX (UINT8_MAX - 1)
@@ -76,6 +78,14 @@ static std::vector<uint8_t> run_length_decode(const std::vector<uint8_t> &data) 
 static int write_empty_bvox(const std::string &filename, BvoxHeader header) {
     header.version = BVOX_VERSION;
 
+#ifdef DEBUG
+    std::cout << "writing empty bvox file: " << filename << " | version: " << static_cast<int>(header.version) << " | chunk_res: "
+              << header.chunk_res << " | chunk_size: " << header.chunk_size << " | rle: "
+              << static_cast<int>(header.run_length_encoded) << " | morton_encoded: "
+              << static_cast<int>(header.morton_encoded) << std::endl;
+#endif
+
+
     std::ofstream ofs(filename, std::ios::out | std::ios::binary);
     if (!ofs.is_open())
         throw std::runtime_error("failed to open file.");
@@ -93,6 +103,13 @@ static int write_bvox(const std::string &filename, const std::vector<std::vector
                       BvoxHeader header) {
     header.version = BVOX_VERSION;
 
+#ifdef DEBUG
+    std::cout << "writing bvox file: " << filename << " | version: " << static_cast<int>(header.version) << " | chunk_res: "
+              << header.chunk_res << " | chunk_size: " << header.chunk_size << " | rle: "
+              << static_cast<int>(header.run_length_encoded) << " | morton_encoded: "
+              << static_cast<int>(header.morton_encoded) << std::endl;
+#endif
+
     std::ofstream ofs(filename, std::ios::out | std::ios::binary);
     if (!ofs.is_open())
         throw std::runtime_error("failed to open file.");
@@ -105,12 +122,13 @@ static int write_bvox(const std::string &filename, const std::vector<std::vector
             throw std::runtime_error("chunk is not the given size.");
 
         if (header.run_length_encoded) {
-            std::cout << "size before: " << chunk.size() << "\n";
+            size_t before = chunk.size();
 
             std::vector<uint8_t> encoded = run_length_encode(chunk);
             ofs.write(reinterpret_cast<const char *>(encoded.data()), static_cast<std::streamsize>(encoded.size()));
 
-            std::cout << "size after: " << encoded.size() << "\n";
+            size_t after = encoded.size();
+            std::cout << "size before: " << before << " | size after: " << after << " | compression: " << (float) after / (float) before << std::endl;
         } else {
             ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
         }
@@ -155,6 +173,13 @@ static int append_to_bvox(const std::string &filename, const std::vector<uint8_t
     BvoxHeader header{};
     get_bvox_header(filename, &header);
 
+#ifdef DEBUG
+    std::cout << "appending to bvox file: " << filename << " | version: " << static_cast<int>(header.version) << " | chunk_res: "
+              << header.chunk_res << " | chunk_size: " << header.chunk_size << " | rle: "
+              << static_cast<int>(header.run_length_encoded) << " | morton_encoded: "
+              << static_cast<int>(header.morton_encoded) << std::endl;
+#endif
+
     std::ofstream ofs(filename, std::ios::out | std::ios::binary | std::ios::app);
     if (!ofs.is_open())
         throw std::runtime_error("failed to open file.");
@@ -164,12 +189,13 @@ static int append_to_bvox(const std::string &filename, const std::vector<uint8_t
         throw std::runtime_error("chunk is not the given size.");
 
     if (header.run_length_encoded) {
-        std::cout << "size before: " << chunk.size() << "\n";
+        size_t before = chunk.size();
 
         std::vector<uint8_t> encoded = run_length_encode(chunk);
         ofs.write(reinterpret_cast<const char *>(encoded.data()), static_cast<std::streamsize>(encoded.size()));
 
-        std::cout << "size after: " << encoded.size() << "\n";
+        size_t after = encoded.size();
+        std::cout << "size before: " << before << " | size after: " << after << " | compression: " << (float) after / (float) before << std::endl;
     } else {
         ofs.write(reinterpret_cast<const char *>(chunk.data()), static_cast<std::streamsize>(chunk.size()));
     }
@@ -187,13 +213,21 @@ static int append_to_bvox(const std::string &filename, const std::vector<uint8_t
 // reading
 //
 
-static int read_bvox(const std::string &filename, std::vector<std::vector<uint8_t> > *p_chunk_data, BvoxHeader *p_header) {
+static int
+read_bvox(const std::string &filename, std::vector<std::vector<uint8_t> > *p_chunk_data, BvoxHeader *p_header) {
     std::ifstream ifs(filename, std::ios::binary);
     if (!ifs.is_open())
         throw std::runtime_error("failed to open file.");
 
     BvoxHeader header{};
     ifs.read(reinterpret_cast<char *>(&header), sizeof(header));
+
+#ifdef DEBUG
+    std::cout << "reading bvox file: " << filename << " | version: " << static_cast<int>(header.version) << " | chunk_res: "
+              << header.chunk_res << " | chunk_size: " << header.chunk_size << " | rle: "
+              << static_cast<int>(header.run_length_encoded) << " | morton_encoded: "
+              << static_cast<int>(header.morton_encoded) << std::endl;
+#endif
 
     if (header.version > BVOX_VERSION) {
         std::cout << "file version: " << header.version << ", reader version: " << BVOX_VERSION << std::endl;

@@ -79,7 +79,7 @@ public:
                 insert_node(static_cast<uint32_t>(i), max_depth, mat);
         }
 
-        std::cout << "octree size: " << nodes.size() << std::endl;
+        std::cout << "octree size: " << nodes.size() << " | grid size: " << vox_grid.size() << " | compression: " << (float) nodes.size() / (float) vox_grid.size() << std::endl;
     }
 
     int insert_node(const uint32_t morton_index, const uint8_t max_depth, const uint8_t mat) {
